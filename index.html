@@ -1,1 +1,215 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书内容系统</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+  :root{--bg:#f7f6f3;--card:#fff;--border:#e8e5df;--text:#2d2d2d;--muted:#9b9589;--accent:#c4a882;--accent2:#8b7355;--tag-bg:#f0ece4;--highlight:#e8e0d4;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .nav{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);display:flex;padding:0 40px;}
+  .nav-tab{font-size:12px;letter-spacing:1.5px;padding:16px 20px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;user-select:none;}
+  .nav-tab:hover{color:var(--text);}
+  .nav-tab.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+  .page{display:none;padding:40px 20px;}
+  .page.active{display:block;}
+  .container{max-width:860px;margin:0 auto;}
+  .header{margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+  .header-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+  .header h1{font-family:'Noto Serif SC',serif;font-size:28px;font-weight:600;margin-bottom:8px;}
+  .header p{font-size:13px;color:var(--muted);line-height:1.8;}
+  .section{margin-bottom:40px;}
+  .section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:12px;}
+  .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .card-title{font-size:15px;font-weight:500;}
+  .card-subtitle{font-size:12px;color:var(--muted);margin-top:3px;}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .tag{font-size:11px;padding:3px 10px;background:var(--tag-bg);border-radius:20px;color:var(--accent2);}
+  .tag.highlight{background:#e8e0d4;font-weight:500;}
+  .field{margin-bottom:14px;}
+  .field-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .field-value{font-size:13px;line-height:1.7;}
+  .field-value.empty{color:var(--muted);font-style:italic;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .formula-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 20px;}
+  .formula-number{font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
+  .formula-name{font-size:14px;font-weight:500;margin-bottom:8px;}
+  .formula-example{font-size:12px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:10px;}
+  .template-block{background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:12px;}
+  .template-block h4{font-size:12px;letter-spacing:1px;color:var(--accent2);margin-bottom:10px;}
+  .template-steps{list-style:none;}
+  .template-steps li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;line-height:1.6;}
+  .template-steps li:last-child{border-bottom:none;}
+  .step-num{font-size:11px;color:var(--muted);min-width:18px;padding-top:1px;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+  .stat-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:center;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-value{font-size:18px;font-weight:500;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px 32px;margin-bottom:20px;}
+  .panel-title{font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:20px;text-transform:uppercase;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:11px;color:var(--muted);letter-spacing:.5px;}
+  select,input,textarea{font-family:'Noto Sans SC',sans-serif;font-size:13px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%;}
+  select:focus,input:focus,textarea:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:70px;line-height:1.7;}
+  .btn-generate{width:100%;padding:13px;background:var(--accent2);color:#fff;border:none;border-radius:8px;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:1px;transition:background .2s;margin-top:4px;}
+  .btn-generate:hover{background:#7a6449;}
+  .btn-generate:disabled{background:var(--muted);cursor:not-allowed;}
+  .output-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px 32px;display:none;animation:fadeIn .4s ease;}
+  .output-panel.visible{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .output-label{font-size:11px;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;}
+  .btn-copy{font-size:12px;color:var(--muted);background:var(--tag-bg);border:1px solid var(--border);border-radius:20px;padding:5px 14px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
+  .btn-regen{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 14px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;margin-left:8px;}
+  .output-section{margin-bottom:20px;}
+  .output-section-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .output-title{font-family:'Noto Serif SC',serif;font-size:18px;font-weight:600;line-height:1.5;}
+  .output-body{font-size:14px;line-height:2;white-space:pre-wrap;word-break:break-all;}
+  .output-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .output-tag{font-size:12px;padding:3px 10px;background:var(--tag-bg);border-radius:20px;color:var(--accent2);}
+  .loading{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;letter-spacing:1px;display:none;}
+  .loading.visible{display:block;}
+  .loading-dots::after{content:'';animation:dots 1.2s infinite;}
+  @keyframes dots{0%,20%{content:'';}40%{content:'.';}60%{content:'..';}80%,100%{content:'...'}}
+  @media(max-width:600px){.grid-2,.form-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}.nav{padding:0 12px;}.nav-tab{padding:14px 8px;font-size:10px;}.panel,.output-panel{padding:20px;}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-tab active" onclick="switchTab('generator',this)">✦ AI 生成器</div>
+  <div class="nav-tab" onclick="switchTab('library',this)">文案库</div>
+  <div class="nav-tab" onclick="switchTab('reference',this)">素材参考</div>
+</nav>
+<div class="page active" id="page-generator">
+<div class="container">
+  <div class="header">
+    <div class="header-label">AI 文案生成器</div>
+    <h1>小红书一键写作</h1>
+    <p>基于 Rebecca 爆款框架 · 女性成长 / 认知提升赛道<br>填写方向，AI 帮你生成完整文案</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title">输入选题信息</div>
+    <div class="form-grid">
+      <div class="form-group"><label>选题方向</label><select id="topic"><option>行动力与执行</option><option>注意力管理</option><option>自我认知</option><option>情绪管理</option><option>认知提升</option><option>人际关系</option><option>创作与输出</option><option>自律与习惯</option></select></div>
+      <div class="form-group"><label>标题公式</label><select id="formula"><option value="颠覆认知型">颠覆认知型 · 人XX就会XX</option><option value="结论直给型">结论直给型 · XX是XX的关键</option><option value="强烈建议型">强烈建议型 · 真心建议不要XX</option><option value="个人经验型">个人经验型 · 分享一个XX思维</option><option value="重复强调型">重复强调型 · XXX三次强调</option><option value="强女思维型">强女思维型 · 强女思维：XX</option></select></div>
+      <div class="form-group"><label>正文结构</label><select id="structure"><option value="方法论类">结构A · 方法论类（最常用）</option><option value="情感共鸣类">结构B · 情感共鸣类</option></select></div>
+      <div class="form-group"><label>权威引用（可留空）</label><input type="text" id="reference" placeholder="如：荣格 / 《原子习惯》"></div>
+      <div class="form-group full"><label>核心想法或关键词（选填）</label><textarea id="keywords" placeholder="例如：拖延的本质不是懒，是恐惧……"></textarea></div>
+    </div>
+    <button class="btn-generate" id="generateBtn" onclick="generate()">✦ 一键生成文案</button>
+  </div>
+  <div class="loading" id="loading"><span class="loading-dots">正在生成</span></div>
+  <div class="output-panel" id="output">
+    <div class="output-header">
+      <div class="output-label">生成结果</div>
+      <div><button class="btn-copy" onclick="copyAll()">复制全文</button><button class="btn-regen" onclick="generate()">重新生成</button></div>
+    </div>
+    <div class="output-section"><div class="output-section-label">标题</div><div class="output-title" id="out-title"></div></div>
+    <div class="divider"></div>
+    <div class="output-section"><div class="output-section-label">正文</div><div class="output-body" id="out-body"></div></div>
+    <div class="divider"></div>
+    <div class="output-section"><div class="output-section-label">标签</div><div class="output-tags" id="out-tags"></div></div>
+  </div>
+</div>
+</div>
+<div class="page" id="page-library">
+<div class="container">
+  <div class="header"><div class="header-label">文案成品库</div><h1>小红书内容系统</h1><p>每发一篇存一条，48小时后补数据</p></div>
+  <div class="section">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">人越想"原创"，就越难开始</div><div class="card-subtitle">2026.02.26 · 20:00 发布</div></div><div class="tag highlight">已发布</div></div>
+      <div class="grid-2">
+        <div class="field"><div class="field-label">标题公式</div><div class="field-value">颠覆认知型</div></div>
+        <div class="field"><div class="field-label">选题方向</div><div class="field-value">行动力与执行</div></div>
+        <div class="field"><div class="field-label">钩子类型</div><div class="field-value">反问制造共鸣</div></div>
+        <div class="field"><div class="field-label">权威引用</div><div class="field-value">荣格 / 《思考快与慢》</div></div>
+      </div>
+      <div class="field"><div class="field-label">核心金句</div><div class="field-value">「创作的本质——不是发明，是命名。」</div></div>
+      <div class="divider" style="margin:14px 0;"></div>
+      <div class="stats-row" style="margin-bottom:0;">
+        <div class="stat-box"><div class="stat-label">点赞</div><div class="stat-value">—</div></div>
+        <div class="stat-box"><div class="stat-label">收藏</div><div class="stat-value">—</div></div>
+        <div class="stat-box"><div class="stat-label">评论</div><div class="stat-value">—</div></div>
+        <div class="stat-box"><div class="stat-label">赞藏比</div><div class="stat-value">—</div></div>
+      </div>
+      <div class="tags"><span class="tag">#人生感悟</span><span class="tag">#观点分享</span><span class="tag">#自我成长</span><span class="tag">#认知提升</span><span class="tag">#创作思维</span></div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="page" id="page-reference">
+<div class="container">
+  <div class="header"><div class="header-label">素材参考</div><h1>公式 · 模板 · 引用库</h1><p>写作前打开，按需取用</p></div>
+  <div class="section">
+    <div class="section-title">标题公式库</div>
+    <div class="grid-2">
+      <div class="formula-card"><div class="formula-number">公式 01</div><div class="formula-name">结论直给型</div><div class="formula-example">「XX是XX的关键」<br>「XX越多，XX越稳」</div></div>
+      <div class="formula-card"><div class="formula-number">公式 02</div><div class="formula-name">个人经验型</div><div class="formula-example">「个人认为XX」<br>「分享一个最近XX的思维方式」</div></div>
+      <div class="formula-card"><div class="formula-number">公式 03</div><div class="formula-name">强烈建议型</div><div class="formula-example">「真心建议：不要XX」<br>「一定要XX」</div></div>
+      <div class="formula-card"><div class="formula-number">公式 04</div><div class="formula-name">颠覆认知型</div><div class="formula-example">「人XX，就会XX」<br>「XX是真的」</div></div>
+      <div class="formula-card"><div class="formula-number">公式 05</div><div class="formula-name">重复强调型</div><div class="formula-example">「XX XX XX」<br>重复三次制造紧迫感</div></div>
+      <div class="formula-card"><div class="formula-number">公式 06</div><div class="formula-name">强女思维型</div><div class="formula-example">「强女思维：XX」<br>「girl boss身上XX」</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">写作模板库</div>
+    <div class="template-block"><h4>结构 A · 方法论类</h4><ul class="template-steps"><li><span class="step-num">01</span>开头：反问/结论/新概念</li><li><span class="step-num">02</span>引用权威背书</li><li><span class="step-num">03</span>结合自身经历具象化</li><li><span class="step-num">04</span>深化痛点分析</li><li><span class="step-num">05</span>给出方法或视角转换</li><li><span class="step-num">06</span>金句收尾</li></ul></div>
+    <div class="template-block"><h4>结构 B · 情感共鸣类</h4><ul class="template-steps"><li><span class="step-num">01</span>触发点（某个瞬间）</li><li><span class="step-num">02</span>展开感受和经历</li><li><span class="step-num">03</span>身边人对比或反面案例</li><li><span class="step-num">04</span>上升到普遍规律</li><li><span class="step-num">05</span>给读者可带走的结论</li></ul></div>
+    <div class="template-block"><h4>收尾金句（三选一）</h4><ul class="template-steps"><li><span class="step-num">A</span>「所以XX，从XX开始就好。」</li><li><span class="step-num">B</span>「你XX的那一刻，就是最好的时机。」</li><li><span class="step-num">C</span>「XX是真的，XX也是真的。」</li></ul></div>
+  </div>
+  <div class="section">
+    <div class="section-title">引用素材库</div>
+    <div class="card"><div class="grid-2"><div class="field"><div class="field-label">来源</div><div class="field-value">荣格</div></div><div class="field"><div class="field-label">适用方向</div><div class="field-value">自我认知 / 潜意识</div></div></div><div class="field"><div class="field-label">金句</div><div class="field-value">「你未能意识到的事情，将以命运的形式出现。」</div></div></div>
+    <div class="card"><div class="grid-2"><div class="field"><div class="field-label">来源</div><div class="field-value">《思考，快与慢》</div></div><div class="field"><div class="field-label">适用方向</div><div class="field-value">认知 / 创作 / 决策</div></div></div><div class="field"><div class="field-label">核心概念</div><div class="field-value">系统一（直觉）vs 系统二（深度思考）</div></div></div>
+  </div>
+  <div class="section">
+    <div class="section-title">固定标签速查</div>
+    <div class="card">
+      <div class="field"><div class="field-label">每篇必带</div><div class="tags"><span class="tag highlight">#人生感悟</span><span class="tag highlight">#观点分享</span><span class="tag highlight">#自我成长</span></div></div>
+      <div class="field" style="margin-top:14px;"><div class="field-label">高频备选</div><div class="tags"><span class="tag">#大大方方做自己</span><span class="tag">#女性必看</span><span class="tag">#努力变优秀</span><span class="tag">#更好的自己</span><span class="tag">#拒绝内耗</span><span class="tag">#认知提升</span><span class="tag">#底层逻辑</span><span class="tag">#创作思维</span><span class="tag">#深度思考</span></div></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+function switchTab(tab,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+tab).classList.add('active');el.classList.add('active');window.scrollTo(0,0);}
+async function generate(){
+  const topic=document.getElementById('topic').value;
+  const formula=document.getElementById('formula').value;
+  const structure=document.getElementById('structure').value;
+  const ref=document.getElementById('reference').value;
+  const kw=document.getElementById('keywords').value;
+  document.getElementById('output').classList.remove('visible');
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('generateBtn').disabled=true;
+  const prompt=`你是专注女性成长/认知提升赛道的小红书爆款写作专家，风格：有洞见、有温度、有金句、引发共鸣。\n\n选题方向：${topic}\n标题公式：${formula}\n正文结构：${structure}\n${ref?'引用：'+ref:''}\n${kw?'核心想法：'+kw:''}\n\n${structure==='方法论类'?'结构A：1.反问/结论开头 2.权威背书 3.具体经历 4.深化痛点 5.方法/视角转换 6.金句收尾':'结构B：1.触发点 2.感受经历 3.对比案例 4.普遍规律 5.可带走结论'}\n\n收尾金句三选一：A.「所以XX，从XX开始就好。」B.「你XX的那一刻，就是最好的时机。」C.「XX是真的，XX也是真的。」\n\n要求：语气真实有深度、不鸡汤、每段不超4行、400-600字。\n\n严格按JSON输出不加其他文字：\n{"title":"标题","body":"正文段落间用\\n\\n分隔","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6","#标签7"]}\n\n标签必须包含 #人生感悟 #观点分享 #自我成长，再加4个相关标签。`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const data=await res.json();
+    const text=data.content.map(i=>i.text||"").join("");
+    const result=JSON.parse(text.replace(/```json|```/g,"").trim());
+    document.getElementById('out-title').textContent=result.title;
+    document.getElementById('out-body').textContent=result.body;
+    const tagsEl=document.getElementById('out-tags');tagsEl.innerHTML='';
+    result.tags.forEach(tag=>{const s=document.createElement('span');s.className='output-tag';s.textContent=tag.startsWith('#')?tag:'#'+tag;tagsEl.appendChild(s);});
+    document.getElementById('output').classList.add('visible');
+  }catch(err){alert('生成失败：'+err.message);}
+  finally{document.getElementById('loading').classList.remove('visible');document.getElementById('generateBtn').disabled=false;}
+}
+function copyAll(){
+  const title=document.getElementById('out-title').textContent;
+  const body=document.getElementById('out-body').textContent;
+  const tags=Array.from(document.getElementById('out-tags').children).map(e=>e.textContent).join(' ');
+  navigator.clipboard.writeText(`${title}\n\n${body}\n\n${tags}`).then(()=>{const btn=document.querySelector('.btn-copy');btn.textContent='已复制 ✓';setTimeout(()=>btn.textContent='复制全文',2000);});
+}
+</script>
+</body>
+</html>
